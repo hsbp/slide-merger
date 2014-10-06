@@ -46,6 +46,7 @@
 #define RECORDING_WIDTH 720
 #define RECORDING_HEIGHT VIDEO_HEIGHT
 #define RECORDING_OFFSET -32
+#define BYTES_PER_PIXEL 3
 
 // must match input video FPS
 #define FPS 29.97
@@ -135,9 +136,11 @@ int main(int argc, char **argv) {
 		for (int line = 0; line < OUT_HEIGHT; line++) {
 			writeScanLine(ffmpegOut, slide, line);
 			if (line < VIDEO_HEIGHT) {
-				discardStdInBytes(((RECORDING_WIDTH - VIDEO_WIDTH) / 2 + RECORDING_OFFSET) * 3);
-				forwardStdInBytes(ffmpegOut, VIDEO_WIDTH * 3);
-				discardStdInBytes(((RECORDING_WIDTH - VIDEO_WIDTH) / 2 - RECORDING_OFFSET) * 3);
+				discardStdInBytes(((RECORDING_WIDTH - VIDEO_WIDTH) / 2
+							+ RECORDING_OFFSET) * BYTES_PER_PIXEL);
+				forwardStdInBytes(ffmpegOut, VIDEO_WIDTH * BYTES_PER_PIXEL);
+				discardStdInBytes(((RECORDING_WIDTH - VIDEO_WIDTH) / 2
+							- RECORDING_OFFSET) * BYTES_PER_PIXEL);
 			} else {
 				writeScanLine(ffmpegOut, southEast, line - VIDEO_HEIGHT);
 			}
