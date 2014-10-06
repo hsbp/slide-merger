@@ -54,6 +54,9 @@
 // uncomment and set if partial processing is needed
 // #define FRAMES_OFFSET (76 * 60 * FPS)
 
+// uncomment and set if overlay is needed
+// #define OVERLAY "../../overlay960x540.png"
+
 void discardStdInBytes(int bytes) {
 	char buf[bytes];
 	fread(buf, bytes, 1, stdin);
@@ -119,7 +122,11 @@ int main(int argc, char **argv) {
 	ffmpegOutArgs << "-r" << QString::number(FPS) << "-loglevel" << "quiet";
 	ffmpegOutArgs << "-s" << QString::number(OUT_WIDTH) + "x" + QString::number(OUT_HEIGHT);
 	ffmpegOutArgs << "-f" << "rawvideo" << "-pixel_format" << "rgb24" << "-i" << "-";
-	ffmpegOutArgs << "-i" << "../../overlay960x540.png" << "-filter_complex" << "overlay";
+
+#ifdef OVERLAY
+	ffmpegOutArgs << "-i" << OVERLAY << "-filter_complex" << "overlay";
+#endif
+
 	ffmpegOutArgs << "-an" << "-vcodec" << "libx264" << "-y" << argv[3];
 
 	ffmpegOut.start("ffmpeg", ffmpegOutArgs);
