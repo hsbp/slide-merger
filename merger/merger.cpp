@@ -48,6 +48,10 @@
 #define RECORDING_OFFSET -32
 #define BYTES_PER_PIXEL 3
 
+#if VIDEO_HEIGHT < OUT_HEIGHT
+#define HAS_SOUTHEAST
+#endif
+
 // must match input video FPS
 #define FPS 29.97
 
@@ -97,7 +101,9 @@ int main(int argc, char **argv) {
 	}
 
 	QString slideFormat(argv[2]);
+#ifdef HAS_SOUTHEAST
 	QImage southEast(VIDEO_WIDTH, OUT_HEIGHT - VIDEO_HEIGHT, QImage::Format_RGB888);
+#endif
 	QImage slide;
 	QList<int> slideChanges(loadLog(argv[1]));
 	QProcess ffmpegOut;
@@ -142,15 +148,20 @@ int main(int argc, char **argv) {
 		}
 		for (int line = 0; line < OUT_HEIGHT; line++) {
 			writeScanLine(ffmpegOut, slide, line);
+
+#ifdef HAS_SOUTHEAST
 			if (line < VIDEO_HEIGHT) {
+#endif
 				discardStdInBytes(((RECORDING_WIDTH - VIDEO_WIDTH) / 2
 							+ RECORDING_OFFSET) * BYTES_PER_PIXEL);
 				forwardStdInBytes(ffmpegOut, VIDEO_WIDTH * BYTES_PER_PIXEL);
 				discardStdInBytes(((RECORDING_WIDTH - VIDEO_WIDTH) / 2
 							- RECORDING_OFFSET) * BYTES_PER_PIXEL);
+#ifdef HAS_SOUTHEAST
 			} else {
 				writeScanLine(ffmpegOut, southEast, line - VIDEO_HEIGHT);
 			}
+#endif
 		}
 	}
 
