@@ -94,14 +94,12 @@ void writeScanLine(QProcess &output, const QImage &img, const int line) {
 
 int main(int argc, char **argv) {
 	if (argc < 3) {
-		fprintf(stderr, ("Usage: %s timestamps.log path/to/slide-%%1.png output.mkv"
-				" (note: slides are numbered from 0)\n\n"
+		fprintf(stderr, ("Usage: %s timestamps.log path/to/slide-0.png output.mkv\n\n"
 				"Standard input expects a series of 24-bit RGB triplets, an ffmpeg example:\n"
 				"\tffmpeg -i foo.mkv -vcodec rawvideo -pix_fmt rgb24 -f rawvideo -\n"), argv[0]);
 		return 1;
 	}
 
-	QString slideFormat(argv[2]);
 #ifdef HAS_SOUTHEAST
 	QImage southEast(VIDEO_WIDTH, OUT_HEIGHT - VIDEO_HEIGHT, QImage::Format_RGB888);
 #endif
@@ -112,7 +110,7 @@ int main(int argc, char **argv) {
 	QSize slideSize(SLIDE_WIDTH, SLIDE_HEIGHT);
 
 	int frames = (80 * 60 + 54) * FPS; // TODO read from argv and/or input
-	QString slidePath(slideFormat.arg(0));
+	QString slidePath(argv[2]);
 
 #ifdef FRAMES_OFFSET
 	foreach (const int timestamp, slideChanges) {
