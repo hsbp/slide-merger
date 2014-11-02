@@ -17,6 +17,14 @@ Dependencies
  - Blessings
  - Drawille
 
+### editor ###
+
+ - Python 2.x (tested on 2.7.8)
+ - PIL
+ - FFmpeg
+ - Flask
+ - NumPy
+
 Building merger
 ---------------
 
