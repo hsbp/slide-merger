@@ -1,0 +1,12 @@
+<html>
+<body>
+	<form action="{{ url_for('export_frames') }}" method="post">
+	{% for frame_no, image in slide_changes %}
+	<h2>Frame {{ frame_no }}</h2>
+	<img src="{{ image }}">
+	<input type="text" name="frame{{ frame_no }}">
+	{% endfor %}
+	<input type="submit" value="Export">
+	</form>
+</body>
+</html>
