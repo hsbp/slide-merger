@@ -146,9 +146,13 @@ int main(int argc, char **argv) {
 					Qt::SmoothTransformation).convertToFormat(QImage::Format_RGB888);
 			fprintf(stderr, "Size: %dx%d\n", slide.width(), slide.height());
 
-			const QStringList parts(slideChanges.takeFirst().split(','));
-			nextChange = parts[0].toInt();
-			slidePath = parts[1];
+			if (!slideChanges.isEmpty()) {
+				const QStringList parts(slideChanges.takeFirst().split(','));
+				if (parts.size() == 2) {
+					nextChange = parts[0].toInt();
+					slidePath = parts[1];
+				}
+			}
 		}
 		for (int line = 0; line < OUT_HEIGHT; line++) {
 			writeScanLine(ffmpegOut, slide, line);
