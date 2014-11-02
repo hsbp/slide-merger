@@ -1,3 +1,4 @@
+#include <QTextStream>
 #include <QProcess>
 #include <QImage>
 #include <QFile>
@@ -73,14 +74,14 @@ void forwardStdInBytes(QProcess &output, int bytes) {
 	output.waitForBytesWritten();
 }
 
-QList<int> loadLog(const char *logfile) {
+QStringList loadLog(const char *logfile) {
 	QFile log(logfile);
-	QList<int> retval;
+	QStringList retval;
 	if (log.open(QIODevice::ReadOnly | QIODevice::Text)) {
-		while (!log.atEnd()) {
-			QByteArray line = log.readLine();
-			line.remove(line.length() - 1, 1); // trailing newline
-			retval.append(line.toShort() * FPS);
+		QTextStream textStream(&log);
+		while (true) {
+			const QString line(textStream.readLine());
+			if (line.isNull()) break; else retval.append(line);
 		}
 	}
 	return retval;
@@ -105,13 +106,13 @@ int main(int argc, char **argv) {
 	QImage southEast(VIDEO_WIDTH, OUT_HEIGHT - VIDEO_HEIGHT, QImage::Format_RGB888);
 #endif
 	QImage slide;
-	QList<int> slideChanges(loadLog(argv[1]));
+	QStringList slideChanges(loadLog(argv[1]));
 	QProcess ffmpegOut;
 	QStringList ffmpegOutArgs;
 	QSize slideSize(SLIDE_WIDTH, SLIDE_HEIGHT);
 
 	int frames = (80 * 60 + 54) * FPS; // TODO read from argv and/or input
-	int slidePos = 0;
+	QString slidePath(slideFormat.arg(0));
 
 #ifdef FRAMES_OFFSET
 	foreach (const int timestamp, slideChanges) {
@@ -140,11 +141,14 @@ int main(int argc, char **argv) {
 
 	for (int frame = FRAMES_OFFSET; frame < frames; frame++) {
 		if (frame == nextChange) {
-			fprintf(stderr, "Loaded frame %d at %d\n", slidePos, frame);
-			slide = QImage(slideFormat.arg(slidePos++)).scaled(slideSize, Qt::IgnoreAspectRatio,
+			fprintf(stderr, "Loaded frame %s at %d\n", slidePath.toUtf8().constData(), frame);
+			slide = QImage(slidePath).scaled(slideSize, Qt::IgnoreAspectRatio,
 					Qt::SmoothTransformation).convertToFormat(QImage::Format_RGB888);
 			fprintf(stderr, "Size: %dx%d\n", slide.width(), slide.height());
-			nextChange = slideChanges.isEmpty() ? 0 : slideChanges.takeFirst();
+
+			const QStringList parts(slideChanges.takeFirst().split(','));
+			nextChange = parts[0].toInt();
+			slidePath = parts[1];
 		}
 		for (int line = 0; line < OUT_HEIGHT; line++) {
 			writeScanLine(ffmpegOut, slide, line);
