@@ -61,11 +61,15 @@ def read_struct(file_obj, fmt):
     return struct.unpack(fmt, file_obj.read(struct.calcsize(fmt)))
 
 def preprocess(fn, rect):
-    info = json.loads(check_output(['ffprobe', fn, '-of', 'json', '-show_streams'], stderr=DEV_NULL))
+    info = json.loads(check_output(['ffprobe', fn, '-of', 'json',
+        '-show_streams', '-show_format'], stderr=DEV_NULL))
     video = next(stream for stream in info['streams'] if stream['codec_type'] == 'video')
     width = video['width']
     height = video['height']
-    frames = video['duration_ts']
+    frames = video.get('duration_ts')
+    if frames is None:
+        a, b = map(float, video.get('avg_frame_rate').split('/'))
+        frames = int(a * float(info['format']['duration']) / b)
 
     skip_head = rect[TOP_LEFT][Y] * width + rect[TOP_LEFT][X]
     line_len = rect[BOTTOM_RIGHT][X] - rect[TOP_LEFT][X]
