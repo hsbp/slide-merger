@@ -132,7 +132,7 @@ int main(int argc, char **argv) {
 	ffmpegOutArgs << "-i" << OVERLAY << "-filter_complex" << "overlay";
 #endif
 
-	ffmpegOutArgs << "-an" << "-vcodec" << "libx264" << "-y" << argv[3];
+	ffmpegOutArgs << "-an" << "-vcodec" << "libx264" << "-y" << "-pix_fmt" << "yuv420p" << argv[3];
 
 	ffmpegOut.start("ffmpeg", ffmpegOutArgs);
 	ffmpegOut.waitForStarted();
