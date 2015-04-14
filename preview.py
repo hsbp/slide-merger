@@ -9,15 +9,13 @@ from sys import argv, stdin, stderr
 from os import path
 import mplayer_sync
 
-log = '/home/dnet/_projekt/cryptonite/syncert/merger/humangep.log'
-slides = '/home/dnet/_projekt/cryptonite/syncert/mvm'
 T = Terminal()
 C = Canvas()
 W = 240
 H = 180
 
-def draw_slide(num, player):
-    img = Image.open(path.join(slides, 'slide-{0}.png'.format(num)))
+def draw_slide(fn, player):
+    img = Image.open(fn)
     px = img.resize((W, H)).convert('L').load()
     for x in xrange(W):
         for y in xrange(H):
@@ -27,26 +25,28 @@ def draw_slide(num, player):
         frame = C.frame(min_x=0, min_y=0, max_x=W, max_y=H)
         print(T.white(frame.decode('utf-8')))
         print('')
-        print('Slide {0} (player={1})'.format(num, player))
+        print('Slide {0} (player={1})'.format(fn, player))
 
-def main(log, slides):
-    log = [int(row.rstrip()) for row in file(log)]
+def main(log):
+    log = [row.rstrip().split(',') for row in file(log)]
     log.append(None) # guard
 
     last_slide = None
+    print(log)
 
     for player in mplayer_sync.monitor(stdin):
-        slide = next(n for n, t in enumerate(log) if player < t or t is None)
+        slide = next(n for n, t in enumerate(log) if t is None or (player * 29.97) < float(t[0]))
+        slide = log[slide - 1]
+        slide = slide[1] if slide is not None else None
         if last_slide != slide:
             draw_slide(slide, player)
             last_slide = slide
 
 if __name__ == '__main__':
     try:
-        log, slides = argv[1:3]
-    except ValueError:
-        print(('Usage: {0} timestamps.log path/to/slides (slide-0.png will'
-                'be the first slide)\n\nStandard input expects mplayer '
-                'standard output.').format(argv[0]), file=stderr)
+        log = argv[1]
+    except IndexError:
+        print(('Usage: {0} timestamps.log'
+                '\n\nStandard input expects mplayer standard output.').format(argv[0]), file=stderr)
     else:
-        main(log, slides)
+        main(log)
