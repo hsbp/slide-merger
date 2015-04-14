@@ -88,7 +88,7 @@ QStringList loadLog(const char *logfile) {
 }
 
 inline void writeScanLine(QProcess &output, const QImage &img, const int line) {
-	output.write((const char*)img.constScanLine(line), img.bytesPerLine());
+	output.write((const char*)img.constScanLine(line), SLIDE_WIDTH * BYTES_PER_PIXEL);
 	output.waitForBytesWritten();
 }
 
