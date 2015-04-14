@@ -62,12 +62,12 @@
 // uncomment and set if overlay is needed
 // #define OVERLAY "../../overlay960x540.png"
 
-void discardStdInBytes(int bytes) {
+inline void discardStdInBytes(int bytes) {
 	char buf[bytes];
 	fread(buf, bytes, 1, stdin);
 }
 
-void forwardStdInBytes(QProcess &output, int bytes) {
+inline void forwardStdInBytes(QProcess &output, int bytes) {
 	char buf[bytes];
 	fread(buf, bytes, 1, stdin);
 	output.write((const char*)buf, bytes);
@@ -87,7 +87,7 @@ QStringList loadLog(const char *logfile) {
 	return retval;
 }
 
-void writeScanLine(QProcess &output, const QImage &img, const int line) {
+inline void writeScanLine(QProcess &output, const QImage &img, const int line) {
 	output.write((const char*)img.constScanLine(line), img.bytesPerLine());
 	output.waitForBytesWritten();
 }
