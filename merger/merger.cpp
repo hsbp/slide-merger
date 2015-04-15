@@ -101,7 +101,8 @@ int main(int argc, char **argv) {
 	}
 
 #ifdef HAS_SOUTHEAST
-	QImage southEast(VIDEO_WIDTH, OUT_HEIGHT - VIDEO_HEIGHT, QImage::Format_RGB888);
+	char southEast[VIDEO_WIDTH * BYTES_PER_PIXEL];
+	memset(southEast, 0xFF, sizeof(southEast));
 #endif
 	QImage slide;
 	QStringList slideChanges(loadLog(argv[1]));
@@ -165,7 +166,8 @@ int main(int argc, char **argv) {
 							- RECORDING_OFFSET) * BYTES_PER_PIXEL);
 #ifdef HAS_SOUTHEAST
 			} else {
-				writeScanLine(ffmpegOut, southEast, line - VIDEO_HEIGHT);
+				ffmpegOut.write(southEast, sizeof(southEast));
+				ffmpegOut.waitForBytesWritten();
 			}
 #endif
 		}
