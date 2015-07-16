@@ -28,7 +28,7 @@ def main():
     sys.exit(rv)
 
 class MplayerThread(Thread):
-    def __init__(self, mw, port=23867):
+    def __init__(self, mw):
         Thread.__init__(self)
         self.mw = mw
 
