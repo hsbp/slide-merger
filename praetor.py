@@ -10,8 +10,8 @@ import sys
 UDP_HOST_PORT = '127.0.0.1', 23867
 FPS = 29.97
 
-WAIT_TEXT = 'Waiting\nfor MPlayer'
-TCR_FMT = '{h}:{m:02}:{s:02}.{ms:03}\nFrame: {frame}'
+WAIT_TEXT = 'Waiting for MPlayer'
+TCR_FMT = '{h}:{m:02}:{s:02}.{ms:03} // Frame: {frame}'
 
 SOCKETS = []
 
