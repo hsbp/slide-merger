@@ -46,9 +46,10 @@ class MplayerThread(Thread):
             else:
                 ts = float(data)
                 its = int(ts)
+                cur_frame = int(ts * FPS)
                 self.tcr.setText(TCR_FMT.format(
                     h=its // 3600, m=its // 60, s=its % 60,
-                    ms=int((ts * 1000) % 1000), frame=int(ts * FPS)))
+                    ms=int((ts * 1000) % 1000), frame=cur_frame))
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent = None):
