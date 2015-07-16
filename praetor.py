@@ -28,12 +28,12 @@ def main():
     sys.exit(rv)
 
 class MplayerThread(Thread):
-    def __init__(self, tcr, port=23867):
+    def __init__(self, mw, port=23867):
         Thread.__init__(self)
-        self.tcr = tcr
+        self.mw = mw
 
     def run(self):
-        self.tcr.setText(WAIT_TEXT)
+        self.mw.tcr.setText(WAIT_TEXT)
         s = socket(AF_INET, SOCK_DGRAM)
         s.bind(UDP_HOST_PORT)
         SOCKETS.append(s)
@@ -42,12 +42,12 @@ class MplayerThread(Thread):
             if not data:
                 break
             elif data == 'bye':
-                self.tcr.setText(WAIT_TEXT)
+                self.mw.tcr.setText(WAIT_TEXT)
             else:
                 ts = float(data)
                 its = int(ts)
                 cur_frame = int(ts * FPS)
-                self.tcr.setText(TCR_FMT.format(
+                self.mw.tcr.setText(TCR_FMT.format(
                     h=its // 3600, m=its // 60, s=its % 60,
                     ms=int((ts * 1000) % 1000), frame=cur_frame))
 
@@ -61,7 +61,7 @@ class MainWindow(QtGui.QMainWindow):
         w = QtGui.QWidget(self)
         w.setLayout(vbox)
         self.setCentralWidget(w)
-        MplayerThread(tcr).start()
+        MplayerThread(self).start()
 
 if __name__ == '__main__':
     main()
