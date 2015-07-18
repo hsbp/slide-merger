@@ -5,7 +5,8 @@ from __future__ import division, print_function
 from PyQt4 import QtGui, QtCore
 from threading import Thread
 from socket import socket, AF_INET, SOCK_DGRAM, SHUT_RD
-import sys
+from os import path, stat
+import sys, pyinotify
 
 UDP_HOST_PORT = '127.0.0.1', 23867
 FPS = 29.97
@@ -23,6 +24,7 @@ def main():
     w = MainWindow(sys.argv[1])
     w.show()
     rv = app.exec_()
+    w.notifier.stop()
     for s in SOCKETS:
         try:
             s.shutdown(SHUT_RD)
@@ -65,9 +67,19 @@ class MplayerThread(Thread):
                     ms=int((ts * 1000) % 1000), frame=cur_frame))
 
 
+class ReloadLog(pyinotify.ProcessEvent):
+    def __init__(self, mw, s):
+        self.mw = mw
+        pyinotify.ProcessEvent.__init__(self, s)
+
+    def process_default(self, event):
+        self.mw._load_log()
+
+
 class MainWindow(QtGui.QMainWindow):
     load_image = QtCore.pyqtSignal(str)
     log = None
+    last_log_stat = None
 
     def __init__(self, logfile, parent=None):
         QtGui.QWidget.__init__(self, parent)
@@ -93,6 +105,12 @@ class MainWindow(QtGui.QMainWindow):
         self.load_image.connect(self._load_image)
         self.resize(680, 540)
         MplayerThread(self).start()
+        wm = pyinotify.WatchManager()
+        s = pyinotify.Stats()
+        self.notifier = pyinotify.ThreadedNotifier(wm,
+                default_proc_fun=ReloadLog(self, s))
+        self.notifier.start()
+        wm.add_watch(path.dirname(logfile), pyinotify.ALL_EVENTS)
 
     def _load_image(self, filename):
         img = QtGui.QImage()
@@ -101,6 +119,13 @@ class MainWindow(QtGui.QMainWindow):
             img.scaledToWidth(640, QtCore.Qt.SmoothTransformation)))
 
     def _load_log(self):
+        try:
+            s = stat(self.logfile)
+        except OSError:
+            return
+        if s == self.last_log_stat:
+            return
+        self.last_log_stat = s
         log = []
         with file(self.logfile) as f:
             for line in f:
