@@ -38,9 +38,9 @@
  *  <-----------OUT_WIDTH------------------->
  *
  */
-#define OUT_WIDTH 960 
-#define OUT_HEIGHT 540 
-#define SLIDE_WIDTH 720
+#define OUT_WIDTH 854
+#define OUT_HEIGHT 480
+#define SLIDE_WIDTH 640
 #define SLIDE_HEIGHT OUT_HEIGHT
 #define VIDEO_WIDTH (OUT_WIDTH - SLIDE_WIDTH)
 #define VIDEO_HEIGHT 480
