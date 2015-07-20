@@ -50,6 +50,8 @@
 #define BYTES_PER_PIXEL 3
 
 #define SLIDE_FRAME_OFFSET 0
+// uncomment the line below to put recording on the left
+// #define RECORDING_ON_LEFT
 
 #if VIDEO_HEIGHT < OUT_HEIGHT
 #define HAS_SOUTHEAST
@@ -157,8 +159,9 @@ int main(int argc, char **argv) {
 			}
 		}
 		for (int line = 0; line < OUT_HEIGHT; line++) {
+#ifndef RECORDING_ON_LEFT
 			writeScanLine(ffmpegOut, slide, line);
-
+#endif
 #ifdef HAS_SOUTHEAST
 			if (line < VIDEO_HEIGHT) {
 #endif
@@ -172,6 +175,10 @@ int main(int argc, char **argv) {
 				ffmpegOut.write(southEast, sizeof(southEast));
 				ffmpegOut.waitForBytesWritten();
 			}
+#endif
+
+#ifdef RECORDING_ON_LEFT
+			writeScanLine(ffmpegOut, slide, line);
 #endif
 		}
 	}
