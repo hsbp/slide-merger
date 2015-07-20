@@ -49,6 +49,8 @@
 #define RECORDING_OFFSET -32
 #define BYTES_PER_PIXEL 3
 
+#define SLIDE_FRAME_OFFSET 0
+
 #if VIDEO_HEIGHT < OUT_HEIGHT
 #define HAS_SOUTHEAST
 #endif
@@ -148,7 +150,7 @@ int main(int argc, char **argv) {
 			if (!slideChanges.isEmpty()) {
 				const QStringList parts(slideChanges.takeFirst().split(','));
 				if (parts.size() == 2) {
-					nextChange = parts[0].toInt();
+					nextChange = parts[0].toInt() - SLIDE_FRAME_OFFSET;
 					slidePath = parts[1];
 				}
 			}
