@@ -143,8 +143,9 @@ int main(int argc, char **argv) {
 	for (int frame = FRAMES_OFFSET; frame < frames; frame++) {
 		if (frame == nextChange) {
 			fprintf(stderr, "Loaded frame %s at %d\n", slidePath.toUtf8().constData(), frame);
-			slide = QImage(slidePath).scaled(slideSize, Qt::IgnoreAspectRatio,
-					Qt::SmoothTransformation).convertToFormat(QImage::Format_RGB888);
+			slide = QImage(slidePath).convertToFormat(QImage::Format_RGB888)
+					.scaled(slideSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)
+					.convertToFormat(QImage::Format_RGB888);
 			fprintf(stderr, "Size: %dx%d\n", slide.width(), slide.height());
 
 			if (!slideChanges.isEmpty()) {
