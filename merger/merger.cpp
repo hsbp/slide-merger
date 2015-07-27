@@ -44,9 +44,6 @@
 #define SLIDE_HEIGHT OUT_HEIGHT
 #define VIDEO_WIDTH (OUT_WIDTH - SLIDE_WIDTH)
 #define VIDEO_HEIGHT 480
-#define RECORDING_WIDTH 720
-#define RECORDING_HEIGHT VIDEO_HEIGHT
-#define RECORDING_OFFSET -32
 #define BYTES_PER_PIXEL 3
 
 #define SLIDE_FRAME_OFFSET 0
@@ -100,7 +97,7 @@ int main(int argc, char **argv) {
 	if (argc < 3) {
 		fprintf(stderr, ("Usage: %s timestamps.log path/to/slide-0.png output.mkv\n\n"
 				"Standard input expects a series of 24-bit RGB triplets, an ffmpeg example:\n"
-				"\tffmpeg -i foo.mkv -vcodec rawvideo -pix_fmt rgb24 -f rawvideo -\n"), argv[0]);
+				"\tffmpeg -i foo.mkv -filter:v 'crop=w:h:x:y' -vcodec rawvideo -pix_fmt rgb24 -f rawvideo -\n"), argv[0]);
 		return 1;
 	}
 
@@ -108,9 +105,6 @@ int main(int argc, char **argv) {
 	char southEast[VIDEO_WIDTH * BYTES_PER_PIXEL];
 	memset(southEast, 0xFF, sizeof(southEast));
 #endif
-#define ZOOM_SIDE_BYTES ((OUT_WIDTH - RECORDING_WIDTH) / 2 * BYTES_PER_PIXEL)
-	char zoomSide[ZOOM_SIDE_BYTES];
-	memset(zoomSide, 0x00, ZOOM_SIDE_BYTES);
 	QImage slide;
 	QStringList slideChanges(loadLog(argv[1]));
 	QProcess ffmpegOut;
@@ -145,18 +139,13 @@ int main(int argc, char **argv) {
 	ffmpegOut.start("ffmpeg", ffmpegOutArgs);
 	ffmpegOut.waitForStarted();
 
-	bool zoomMode = false;
-
 	for (int frame = FRAMES_OFFSET; frame < frames; frame++) {
 		if (frame == nextChange) {
 			fprintf(stderr, "Loaded frame %s at %d\n", slidePath.toUtf8().constData(), frame);
-			zoomMode = (slidePath == "zoom");
-			if (!zoomMode) {
-				slide = QImage(slidePath).convertToFormat(QImage::Format_RGB888)
-						.scaled(slideSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)
-						.convertToFormat(QImage::Format_RGB888);
-				fprintf(stderr, "Size: %dx%d\n", slide.width(), slide.height());
-			}
+			slide = QImage(slidePath).convertToFormat(QImage::Format_RGB888)
+					.scaled(slideSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)
+					.convertToFormat(QImage::Format_RGB888);
+			fprintf(stderr, "Size: %dx%d\n", slide.width(), slide.height());
 
 			if (!slideChanges.isEmpty()) {
 				const QStringList parts(slideChanges.takeFirst().split(','));
@@ -167,35 +156,24 @@ int main(int argc, char **argv) {
 			}
 		}
 		for (int line = 0; line < OUT_HEIGHT; line++) {
-			if (zoomMode) {
-				ffmpegOut.write(zoomSide, ZOOM_SIDE_BYTES);
-				ffmpegOut.waitForBytesWritten();
-				forwardStdInBytes(ffmpegOut, RECORDING_WIDTH * BYTES_PER_PIXEL);
-				ffmpegOut.write(zoomSide, ZOOM_SIDE_BYTES);
-				ffmpegOut.waitForBytesWritten();
-			} else {
 #ifndef RECORDING_ON_LEFT
-				writeScanLine(ffmpegOut, slide, line);
+			writeScanLine(ffmpegOut, slide, line);
 #endif
 #ifdef HAS_SOUTHEAST
-				if (line < VIDEO_HEIGHT) {
+			if (line < VIDEO_HEIGHT) {
 #endif
-					discardStdInBytes(((RECORDING_WIDTH - VIDEO_WIDTH) / 2
-								+ RECORDING_OFFSET) * BYTES_PER_PIXEL);
-					forwardStdInBytes(ffmpegOut, VIDEO_WIDTH * BYTES_PER_PIXEL);
-					discardStdInBytes(((RECORDING_WIDTH - VIDEO_WIDTH) / 2
-								- RECORDING_OFFSET) * BYTES_PER_PIXEL);
+				forwardStdInBytes(ffmpegOut, VIDEO_WIDTH * BYTES_PER_PIXEL);
+				if (VIDEO_WIDTH % 4) discardStdInBytes((4 - (VIDEO_WIDTH % 4)) * BYTES_PER_PIXEL);
 #ifdef HAS_SOUTHEAST
-				} else {
-					ffmpegOut.write(southEast, sizeof(southEast));
-					ffmpegOut.waitForBytesWritten();
-				}
+			} else {
+				ffmpegOut.write(southEast, sizeof(southEast));
+				ffmpegOut.waitForBytesWritten();
+			}
 #endif
 
 #ifdef RECORDING_ON_LEFT
-				writeScanLine(ffmpegOut, slide, line);
+			writeScanLine(ffmpegOut, slide, line);
 #endif
-			}
 		}
 	}
 
