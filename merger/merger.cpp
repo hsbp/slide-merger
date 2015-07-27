@@ -68,11 +68,15 @@ inline void discardStdInBytes(int bytes) {
 	fread(buf, bytes, 1, stdin);
 }
 
-inline void forwardStdInBytes(QProcess &output, int bytes) {
+inline void forwardFileBytes(QProcess &output, FILE* f, int bytes) {
 	char buf[bytes];
-	fread(buf, bytes, 1, stdin);
+	fread(buf, bytes, 1, f);
 	output.write((const char*)buf, bytes);
 	output.waitForBytesWritten();
+}
+
+inline void forwardStdInBytes(QProcess &output, int bytes) {
+	forwardFileBytes(output, stdin, bytes);
 }
 
 QStringList loadLog(const char *logfile) {
