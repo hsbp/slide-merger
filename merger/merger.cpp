@@ -109,6 +109,7 @@ int main(int argc, char **argv) {
 	char southEast[VIDEO_WIDTH * BYTES_PER_PIXEL];
 	memset(southEast, 0xFF, sizeof(southEast));
 #endif
+	FILE *fifo = NULL;
 	QImage slide;
 	QStringList slideChanges(loadLog(argv[1]));
 	QProcess ffmpegOut;
@@ -145,11 +146,19 @@ int main(int argc, char **argv) {
 
 	for (int frame = FRAMES_OFFSET; frame < frames; frame++) {
 		if (frame == nextChange) {
-			fprintf(stderr, "Loaded frame %s at %d\n", slidePath.toUtf8().constData(), frame);
-			slide = QImage(slidePath).convertToFormat(QImage::Format_RGB888)
-					.scaled(slideSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)
-					.convertToFormat(QImage::Format_RGB888);
-			fprintf(stderr, "Size: %dx%d\n", slide.width(), slide.height());
+			if (slidePath.startsWith("fifo:")) {
+				fifo = fopen(slidePath.toUtf8().constData() + 5, "r");
+			} else {
+				if (fifo) {
+					fclose(fifo);
+					fifo = NULL;
+				}
+				fprintf(stderr, "Loaded frame %s at %d\n", slidePath.toUtf8().constData(), frame);
+				slide = QImage(slidePath).convertToFormat(QImage::Format_RGB888)
+						.scaled(slideSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation)
+						.convertToFormat(QImage::Format_RGB888);
+				fprintf(stderr, "Size: %dx%d\n", slide.width(), slide.height());
+			}
 
 			if (!slideChanges.isEmpty()) {
 				const QStringList parts(slideChanges.takeFirst().split(','));
@@ -161,7 +170,8 @@ int main(int argc, char **argv) {
 		}
 		for (int line = 0; line < OUT_HEIGHT; line++) {
 #ifndef RECORDING_ON_LEFT
-			writeScanLine(ffmpegOut, slide, line);
+			if (fifo) forwardFileBytes(ffmpegOut, fifo, SLIDE_WIDTH * BYTES_PER_PIXEL);
+				else writeScanLine(ffmpegOut, slide, line);
 #endif
 #ifdef HAS_SOUTHEAST
 			if (line < VIDEO_HEIGHT) {
@@ -176,7 +186,8 @@ int main(int argc, char **argv) {
 #endif
 
 #ifdef RECORDING_ON_LEFT
-			writeScanLine(ffmpegOut, slide, line);
+			if (fifo) forwardFileBytes(ffmpegOut, fifo, SLIDE_WIDTH * BYTES_PER_PIXEL);
+				else writeScanLine(ffmpegOut, slide, line);
 #endif
 		}
 	}
