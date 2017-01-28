@@ -32,5 +32,5 @@ Please read the comments in `merger/merger.cpp` carefully and update the
 parameters appropriately.
 
 	cd merger
-	qmake-qt4
+	qmake
 	make
