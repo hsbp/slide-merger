@@ -43,6 +43,8 @@ def gen_slide_changes():
             try:
                 (frame_no,) = read_struct(f, FRAME_FMT)
             except struct.error:
+                if to_yield is not None:
+                    yield to_yield
                 return
             else:
                 if frame_no - prev_no > MIN_FRAME_DIFF:
