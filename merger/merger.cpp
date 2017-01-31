@@ -5,6 +5,7 @@
 
 #include <unistd.h>
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
 
@@ -84,9 +85,23 @@ QStringList loadLog(const char *logfile) {
 	QStringList retval;
 	if (log.open(QIODevice::ReadOnly | QIODevice::Text)) {
 		QTextStream textStream(&log);
+      long int cur=-1, prev=-1, lineno=0;
+      char* endptr;
 		while (true) {
 			const QString line(textStream.readLine());
-			if (line.isNull()) break; else retval.append(line);
+			if (line.isNull()) break;
+         prev=cur;
+         cur=strtol(line.toAscii().data(), &endptr, 0);
+         if(endptr==line.toAscii().data()) {
+            std::cerr << "invalid number in line: " <<  lineno << std::endl << line.toAscii().data() << std::endl;
+            exit(1);
+         }
+         if(prev>=cur) {
+            std::cerr << "invalid timestamp line at: " << lineno << std::endl << line.toAscii().data() << std::endl;
+            exit(1);
+         }
+         retval.append(line);
+         lineno++;
 		}
 	} else {
       std::cerr << "failed to open: " << logfile << std::endl;
