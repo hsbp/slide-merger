@@ -109,8 +109,10 @@ int main(int argc, char **argv) {
 	memset(southEast, 0xFF, sizeof(southEast));
 #endif
 #define ZOOM_SIDE_BYTES ((OUT_WIDTH - RECORDING_WIDTH) / 2 * BYTES_PER_PIXEL)
+#if ZOOM_SIDE_BYTES > 0
 	char zoomSide[ZOOM_SIDE_BYTES];
 	memset(zoomSide, 0x00, ZOOM_SIDE_BYTES);
+#endif
 	QImage slide;
 	QStringList slideChanges(loadLog(argv[1]));
 	QProcess ffmpegOut;
@@ -168,11 +170,15 @@ int main(int argc, char **argv) {
 		}
 		for (int line = 0; line < OUT_HEIGHT; line++) {
 			if (zoomMode) {
+#if ZOOM_SIDE_BYTES > 0
 				ffmpegOut.write(zoomSide, ZOOM_SIDE_BYTES);
 				ffmpegOut.waitForBytesWritten();
+#endif
 				forwardStdInBytes(ffmpegOut, RECORDING_WIDTH * BYTES_PER_PIXEL);
+#if ZOOM_SIDE_BYTES > 0
 				ffmpegOut.write(zoomSide, ZOOM_SIDE_BYTES);
 				ffmpegOut.waitForBytesWritten();
+#endif
 			} else {
 #ifndef RECORDING_ON_LEFT
 				writeScanLine(ffmpegOut, slide, line);
