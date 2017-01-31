@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <stdio.h>
+#include <iostream>
 
 /*
  *  Input video (stdin):
@@ -87,7 +88,10 @@ QStringList loadLog(const char *logfile) {
 			const QString line(textStream.readLine());
 			if (line.isNull()) break; else retval.append(line);
 		}
-	}
+	} else {
+      std::cerr << "failed to open: " << logfile << std::endl;
+      exit(1);
+   }
 	return retval;
 }
 
