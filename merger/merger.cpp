@@ -93,11 +93,11 @@ QStringList loadLog(const char *logfile) {
          prev=cur;
          cur=strtol(line.toUtf8().constData(), &endptr, 0);
          if(endptr==line.toUtf8().constData()) {
-            std::cerr << "invalid number in line: " <<  lineno << std::endl << line.toAscii().data() << std::endl;
+            std::cerr << "invalid number in line: " <<  lineno << std::endl << line.toStdString() << std::endl;
             exit(1);
          }
          if(prev>=cur) {
-            std::cerr << "invalid timestamp line at: " << lineno << std::endl << line.toAscii().data() << std::endl;
+            std::cerr << "invalid timestamp line at: " << lineno << std::endl << line.toStdString() << std::endl;
             exit(1);
          }
          retval.append(line);
