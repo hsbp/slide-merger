@@ -90,18 +90,18 @@ QStringList loadLog(const char *logfile) {
 		while (true) {
 			const QString line(textStream.readLine());
 			if (line.isNull()) break;
-         prev=cur;
-         cur=strtol(line.toUtf8().constData(), &endptr, 0);
-         if(endptr==line.toUtf8().constData()) {
-            std::cerr << "invalid number in line: " <<  lineno << std::endl << line.toStdString() << std::endl;
-            exit(1);
-         }
-         if(prev>=cur) {
-            std::cerr << "invalid timestamp line at: " << lineno << std::endl << line.toStdString() << std::endl;
-            exit(1);
-         }
-         retval.append(line);
-         lineno++;
+			prev = cur;
+			cur = strtol(line.toUtf8().constData(), &endptr, 0);
+			if (endptr == line.toUtf8().constData()) {
+				std::cerr << "invalid number in line: " <<  lineno << std::endl << line.toStdString() << std::endl;
+				exit(1);
+			}
+			if (prev >= cur) {
+				std::cerr << "invalid timestamp line at: " << lineno << std::endl << line.toStdString() << std::endl;
+				exit(1);
+			}
+			retval.append(line);
+			lineno++;
 		}
 	} else {
       std::cerr << "failed to open: " << logfile << std::endl;
