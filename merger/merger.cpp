@@ -91,8 +91,8 @@ QStringList loadLog(const char *logfile) {
 			const QString line(textStream.readLine());
 			if (line.isNull()) break;
          prev=cur;
-         cur=strtol(line.toAscii().data(), &endptr, 0);
-         if(endptr==line.toAscii().data()) {
+         cur=strtol(line.toUtf8().constData(), &endptr, 0);
+         if(endptr==line.toUtf8().constData()) {
             std::cerr << "invalid number in line: " <<  lineno << std::endl << line.toAscii().data() << std::endl;
             exit(1);
          }
